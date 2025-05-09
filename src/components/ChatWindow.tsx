@@ -2,15 +2,23 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Message } from '@/types/chat';
-import { PaperAirplaneIcon } from '@heroicons/react/24/solid';
+import { PaperAirplaneIcon, StopIcon } from '@heroicons/react/24/solid';
 
 interface ChatWindowProps {
   messages: Message[];
   onSendMessage: (content: string) => void;
   isTyping: boolean;
+  onStopConversation: () => void;
+  isConversationActive: boolean;
 }
 
-export default function ChatWindow({ messages, onSendMessage, isTyping }: ChatWindowProps) {
+export default function ChatWindow({ 
+  messages, 
+  onSendMessage, 
+  isTyping, 
+  onStopConversation,
+  isConversationActive 
+}: ChatWindowProps) {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -69,8 +77,8 @@ export default function ChatWindow({ messages, onSendMessage, isTyping }: ChatWi
         )}
         <div ref={messagesEndRef} />
       </div>
-      <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200">
-        <div className="flex space-x-4">
+      <div className="p-4 border-t border-gray-200">
+        <form onSubmit={handleSubmit} className="flex space-x-4">
           <input
             type="text"
             value={input}
@@ -85,8 +93,17 @@ export default function ChatWindow({ messages, onSendMessage, isTyping }: ChatWi
           >
             <PaperAirplaneIcon className="w-5 h-5" />
           </button>
-        </div>
-      </form>
+          {isConversationActive && (
+            <button
+              type="button"
+              onClick={onStopConversation}
+              className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+            >
+              <StopIcon className="w-5 h-5" />
+            </button>
+          )}
+        </form>
+      </div>
     </div>
   );
 } 

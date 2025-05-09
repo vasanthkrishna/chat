@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { Assistant } from '@/types/chat';
+import { Assistant, Message } from '@/types/chat';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -9,24 +9,38 @@ const openai = new OpenAI({
 interface ChatRequest {
   message: string;
   assistant: Assistant;
+  context?: Message[];
 }
+
+type ChatCompletionMessage = {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+};
 
 export async function POST(req: Request) {
   try {
-    const { message, assistant }: ChatRequest = await req.json();
+    const { message, assistant, context = [] }: ChatRequest = await req.json();
+
+    const messages: ChatCompletionMessage[] = [
+      {
+        role: "system",
+        content: assistant.systemPrompt
+      },
+      ...context.map(msg => ({
+        role: msg.role as 'user' | 'assistant',
+        content: msg.role === 'assistant' 
+          ? `From ${msg.assistantId}: ${msg.content}`
+          : msg.content
+      })),
+      {
+        role: "user",
+        content: message
+      }
+    ];
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
-      messages: [
-        {
-          role: "system",
-          content: assistant.systemPrompt
-        },
-        {
-          role: "user",
-          content: message
-        }
-      ],
+      messages,
       temperature: 0.7,
       max_tokens: 500,
     });
