@@ -6,9 +6,14 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+interface ChatRequest {
+  message: string;
+  assistant: Assistant;
+}
+
 export async function POST(req: Request) {
   try {
-    const { message, assistant } = await req.json();
+    const { message, assistant }: ChatRequest = await req.json();
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
